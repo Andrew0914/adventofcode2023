@@ -11,13 +11,6 @@ defmodule Day1 do
     "nine" => "9"
   }
 
-  defp is_digit?(item) do
-    case Integer.parse(item) do
-      {_, _} -> true
-      _ -> false
-    end
-  end
-
   defp add_digit_from_word(index, line, bounds) do
     current_portion = String.slice(line, index, String.length(line))
 
@@ -31,7 +24,9 @@ defmodule Day1 do
       String.graphemes(line)
       |> Enum.with_index()
       |> Enum.reduce([], fn {item, index}, bounds ->
-        if is_digit?(item), do: bounds ++ [item], else: add_digit_from_word(index, line, bounds)
+        if CommonUtils.is_digit?(item),
+          do: bounds ++ [item],
+          else: add_digit_from_word(index, line, bounds)
       end)
 
     Enum.at(digits, 0) <> Enum.at(digits, -1)
@@ -49,8 +44,8 @@ defmodule Day1 do
     input_file = ~c"./assets/day1.txt"
 
     input_file
-    |> FileReader.read_file()
-    |> FileReader.get_lines()
+    |> CommonUtils.read_file()
+    |> CommonUtils.get_lines()
     |> get_calibration()
   end
 
@@ -58,8 +53,8 @@ defmodule Day1 do
     input_file = ~c"./assets/day1.txt"
 
     input_file
-    |> FileReader.read_file()
-    |> FileReader.get_lines()
+    |> CommonUtils.read_file()
+    |> CommonUtils.get_lines()
     |> get_calibration()
   end
 end
