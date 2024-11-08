@@ -1,4 +1,15 @@
 defmodule Day3 do
+  @directions [
+    {0, -1},
+    {0, 1},
+    {-1, 0},
+    {1, 0},
+    {1, -1},
+    {1, 1},
+    {-1, -1},
+    {-1, 1}
+  ]
+
   def build_schematic_matrix(lines) do
     lines |> Enum.map(&String.graphemes/1)
   end
@@ -23,10 +34,15 @@ defmodule Day3 do
     line
     |> Enum.with_index()
     |> Enum.reduce([], fn {piece, index}, acc ->
-      if Utils.Numbers.is_digit?(piece) do
-        setup_number_part(line, {piece, index}, acc)
-      else
-        acc
+      cond do
+        Utils.Numbers.is_digit?(piece) ->
+          setup_number_part(line, {piece, index}, acc)
+
+        piece != "." ->
+          [[piece, index]] ++ acc
+
+        true ->
+          acc
       end
     end)
   end
@@ -35,23 +51,12 @@ defmodule Day3 do
     lines |> Enum.map(&parse_schema_parts/1)
   end
 
-  defp valid_adjacent?(element) do
+  defp is_valid_adjacent_symbol?(element) do
     element != nil and element != "." and not Utils.Numbers.is_digit?(element)
   end
 
   defp has_adjacent_symbol(y_decoded_line, x_start, x_end, lines) do
-    directions = [
-      {0, -1},
-      {0, 1},
-      {-1, 0},
-      {1, 0},
-      {1, -1},
-      {1, 1},
-      {-1, -1},
-      {-1, 1}
-    ]
-
-    directions
+    @directions
     |> Enum.any?(fn {x, y} ->
       check_line = Utils.Lists.get_element(lines, y_decoded_line + y)
 
@@ -60,7 +65,7 @@ defmodule Day3 do
 
         last_adjacent = Utils.Lists.get_element(check_line, x_end + x)
 
-        valid_adjacent?(first_adjacent) or valid_adjacent?(last_adjacent)
+        is_valid_adjacent_symbol?(first_adjacent) or is_valid_adjacent_symbol?(last_adjacent)
       else
         false
       end
@@ -97,6 +102,59 @@ defmodule Day3 do
     |> Enum.sum()
   end
 
+  defp is_valid_adjacent_number_part?(part, match_coordinate) do
+    [_num_part | positions] = part
+
+    x1 = List.first(positions)
+    x2 = List.last(positions)
+    x1 == match_coordinate or x2 == match_coordinate
+  end
+
+  def map_adjacent_parts(piece, line_index, decoded_lines) do
+    if Utils.Lists.get_element(piece, 0) == "*" do
+      px = Utils.Lists.get_element(piece, 1)
+      py = line_index
+
+      @directions
+      |> Enum.reduce([], fn {x, y}, acc ->
+        check_line = Utils.Lists.get_element(decoded_lines, py + y)
+
+        if check_line != nil do
+          part =
+            check_line
+            |> Enum.find(fn part -> is_valid_adjacent_number_part?(part, px + x) end)
+
+          if part != nil, do: acc ++ [part], else: acc
+        else
+          acc
+        end
+      end)
+    else
+      []
+    end
+  end
+
+  def get_valid_gears_adjacent_parts(decoded_lines) do
+    decoded_lines
+    |> Enum.with_index()
+    |> Enum.map(fn {decoded_line, line_index} ->
+      decoded_line
+      |> Enum.flat_map(&map_adjacent_parts(&1, line_index, decoded_lines))
+    end)
+    |> Enum.filter(&(&1 != []))
+    |> Enum.map(&Enum.uniq/1)
+  end
+
+  def get_gear_total_ratios(gear_adjacent_parts) do
+    gear_adjacent_parts
+    |> Enum.filter(&(length(&1) == 2))
+    |> Enum.map(fn [part1, part2] ->
+      num_part1 = Utils.Lists.get_element(part1, 0)
+      num_part2 = Utils.Lists.get_element(part2, 0)
+      String.to_integer(num_part1) * String.to_integer(num_part2)
+    end)
+  end
+
   def part1() do
     input =
       ~c"./assets/day3.txt"
@@ -108,5 +166,22 @@ defmodule Day3 do
     get_decode_posible_number_parts(lines)
     |> get_valid_number_parts(lines)
     |> sum_number_parts()
+  end
+
+  def part2 do
+    input =
+      ~c"./assets/day3.txt"
+      |> Utils.Files.read_file()
+
+    lines =
+      input
+      |> Utils.Files.get_lines()
+      |> build_schematic_matrix()
+
+    lines
+    |> get_decode_posible_number_parts()
+    |> get_valid_gears_adjacent_parts()
+    |> get_gear_total_ratios()
+    |> Enum.sum()
   end
 end
