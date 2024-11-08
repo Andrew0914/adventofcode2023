@@ -61,8 +61,8 @@ defmodule Day2 do
     input_file = ~c"./assets/day2.txt"
 
     input_file
-    |> CommonUtils.read_file()
-    |> CommonUtils.get_lines()
+    |> Utils.Files.read_file()
+    |> Utils.Files.get_lines()
     |> get_sum_of_invalid_games()
   end
 
@@ -70,8 +70,8 @@ defmodule Day2 do
     input_file = ~c"./assets/day2.txt"
 
     input_file
-    |> CommonUtils.read_file()
-    |> CommonUtils.get_lines()
+    |> Utils.Files.read_file()
+    |> Utils.Files.get_lines()
     |> get_total_games_power()
   end
 end

@@ -24,7 +24,7 @@ defmodule Day1 do
       String.graphemes(line)
       |> Enum.with_index()
       |> Enum.reduce([], fn {item, index}, bounds ->
-        if CommonUtils.is_digit?(item),
+        if Utils.Numbers.is_digit?(item),
           do: bounds ++ [item],
           else: add_digit_from_word(index, line, bounds)
       end)
@@ -44,8 +44,8 @@ defmodule Day1 do
     input_file = ~c"./assets/day1.txt"
 
     input_file
-    |> CommonUtils.read_file()
-    |> CommonUtils.get_lines()
+    |> Utils.Files.read_file()
+    |> Utils.Files.get_lines()
     |> get_calibration()
   end
 
@@ -53,8 +53,8 @@ defmodule Day1 do
     input_file = ~c"./assets/day1.txt"
 
     input_file
-    |> CommonUtils.read_file()
-    |> CommonUtils.get_lines()
+    |> Utils.Files.read_file()
+    |> Utils.Files.get_lines()
     |> get_calibration()
   end
 end
