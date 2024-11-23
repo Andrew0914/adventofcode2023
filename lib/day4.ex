@@ -69,41 +69,58 @@ defmodule Day4 do
     |> Enum.sum()
   end
 
-  def get_copies(matches) do
-    matches
-    |> Enum.with_index()
-    |> Enum.map(fn {match, index} ->
-      start_card = index + 1
-      end_card = min(start_card + (match - 1), length(matches) - 1)
+  def generate_cards(cards, _copy_counts, index) when index >= length(cards), do: cards
 
-      index_of_copied_cards = if match > 0, do: start_card..end_card |> Enum.to_list(), else: []
+  def generate_cards(cards, copy_counts, index) do
+    current_set = Enum.at(cards, index, [])
 
-      copies = index_of_copied_cards |> Enum.map(&(&1 + 1))
-      original = index + 1
-      [original | copies]
-    end)
+    copied_cards =
+      current_set
+      |> Enum.reduce([], fn card, acc ->
+        count = copy_counts |> Enum.at(card - 1, 0)
+
+        if count > 0 do
+          start_copy = min(card + 1, length(copy_counts))
+          end_copy = min(start_copy + count - 1, length(copy_counts))
+
+          acc ++ [Enum.map(start_copy..end_copy, & &1)]
+          # Enum.concat(acc, Enum.map(start_copy..end_copy, & &1))
+        else
+          acc
+        end
+      end)
+
+    # incremented_cards = cards ++ copied_cards
+
+    incremented_cards = Enum.concat(cards, copied_cards)
+
+    generate_cards(incremented_cards, copy_counts, index + 1)
   end
 
   def part2 do
-    # input_file = ~c"./assets/day4.txt"
+    input_file = ~c"./assets/day4.txt"
 
-    # input =
-    #   input_file
-    #   |> Utils.Files.read_file()
+    input =
+      input_file
+      |> Utils.Files.read_file()
 
-    input = """
-    Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
-    Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
-    Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
-    Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
-    Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
-    Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
-    """
+    # input = """
+    # Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+    # Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
+    # Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
+    # Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
+    # Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
+    # Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
+    # """
 
-    input
-    |> Utils.Files.get_lines()
-    |> get_parties()
-    |> Enum.map(&get_matches/1)
-    |> get_copies()
+    copy_counts =
+      input
+      |> Utils.Files.get_lines()
+      |> get_parties()
+      |> Enum.map(&get_matches/1)
+
+    original_cards = 1..length(copy_counts) |> Enum.map(& &1)
+
+    generate_cards([original_cards], copy_counts, 0) |> Enum.flat_map(& &1) |> length()
   end
 end
